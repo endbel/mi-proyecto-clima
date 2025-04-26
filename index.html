@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Aplicación de información climática en tiempo real"
+    />
+    <title>ClimApp - Sistema de Información Climática</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+    />
+  </head>
+  <body>
+    <div class="app" role="application">
+      <!-- Header con navegación mejorado semánticamente -->
+      <header class="header" role="banner">
+        <div class="app__container header__container">
+          <div class="header__logo">
+            <span class="header__logo-icon icon-logo" aria-hidden="true"></span>
+            <h1>ClimApp</h1>
+          </div>
+          <nav class="header__nav nav" aria-label="Navegación principal">
+            <ul class="nav__list">
+              <li class="nav__item">
+                <a
+                  href="#"
+                  class="nav__link nav__link--active"
+                  id="homeLink"
+                  aria-current="page"
+                  >Inicio</a
+                >
+              </li>
+              <li class="nav__item">
+                <a href="#" class="nav__link" id="mapLink">Mapa</a>
+              </li>
+              <li class="nav__item">
+                <a href="#" class="nav__link">Historial</a>
+              </li>
+              <li class="nav__item">
+                <a href="#" class="nav__link">Alertas</a>
+              </li>
+              <li class="nav__item">
+                <a href="#" class="nav__link">Configuración</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Contenido principal mejorado -->
+      <main class="main" role="main">
+        <div class="app__container">
+          <!-- Estados de carga/error con ARIA -->
+          <div
+            class="loading hidden"
+            id="loadingState"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="loading__spinner" aria-hidden="true"></div>
+            <p class="loading__text">Cargando datos del clima...</p>
+          </div>
+
+          <div class="error hidden" id="errorState" aria-live="assertive">
+            <div class="error__icon icon-error" aria-hidden="true"></div>
+            <h2 class="error__title">Error al cargar los datos</h2>
+            <p class="error__message">
+              No pudimos obtener la información del clima. Por favor, verifica
+              tu conexión e inténtalo nuevamente.
+            </p>
+            <button class="error__button" id="retryButton">
+              Intentar nuevamente
+            </button>
+          </div>
+
+          <!-- Dashboard principal -->
+          <div class="dashboard" id="weatherDashboard">
+            <!-- Columna principal -->
+            <div class="dashboard__main">
+              <!-- Tarjeta del clima actual -->
+              <section
+                class="weather-card"
+                aria-labelledby="currentWeatherTitle"
+              >
+                <div class="weather-card__header">
+                  <div>
+                    <h2 id="currentWeatherTitle" class="weather-card__title">
+                      Buenos Aires, Argentina
+                    </h2>
+                    <p class="weather-card__subtitle">Parcialmente nublado</p>
+                  </div>
+                  <div class="weather-card__update">
+                    <p id="lastUpdate">Actualizado: 10:30 AM</p>
+                    <button
+                      class="weather-card__refresh"
+                      id="refreshButton"
+                      aria-label="Actualizar datos"
+                    >
+                      <span
+                        class="weather-card__refresh-icon icon-refresh"
+                        aria-hidden="true"
+                      ></span>
+                      Actualizar
+                    </button>
+                  </div>
+                </div>
+                <div class="weather-card__main">
+                  <div class="weather-card__temp">25°C</div>
+                  <div
+                    class="weather-card__icon icon-cloudy"
+                    aria-hidden="true"
+                  ></div>
+                </div>
+                <div class="weather-card__details">
+                  <!-- Detalles del clima con roles ARIA -->
+                  <div
+                    class="weather-detail"
+                    role="region"
+                    aria-label="Sensación térmica"
+                  >
+                    <div
+                      class="weather-detail__icon icon-temp"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="weather-detail__value">27°C</div>
+                    <div class="weather-detail__label">Sensación térmica</div>
+                  </div>
+                  <div
+                    class="weather-detail"
+                    role="region"
+                    aria-label="Humedad"
+                  >
+                    <div
+                      class="weather-detail__icon icon-humidity"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="weather-detail__value">65%</div>
+                    <div class="weather-detail__label">Humedad</div>
+                  </div>
+                  <div
+                    class="weather-detail"
+                    role="region"
+                    aria-label="Velocidad del viento"
+                  >
+                    <div
+                      class="weather-detail__icon icon-wind"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="weather-detail__value">12 km/h</div>
+                    <div class="weather-detail__label">Viento</div>
+                  </div>
+                  <div
+                    class="weather-detail"
+                    role="region"
+                    aria-label="Presión atmosférica"
+                  >
+                    <div
+                      class="weather-detail__icon icon-pressure"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="weather-detail__value">1015 hPa</div>
+                    <div class="weather-detail__label">Presión</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Pronóstico mejorado semánticamente -->
+              <section class="forecast" aria-labelledby="forecastTitle">
+                <h2 id="forecastTitle" class="forecast__title">
+                  Pronóstico de 5 días
+                </h2>
+                <div class="forecast__container" role="list">
+                  <!-- Días de pronóstico con roles ARIA -->
+                  <div class="forecast-card" role="listitem">
+                    <div class="forecast-card__day">Lunes</div>
+                    <div
+                      class="forecast-card__icon icon-sunny"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="forecast-card__temp">
+                      <span class="forecast-card__temp-max">28°</span>
+                      <span class="forecast-card__temp-min">18°</span>
+                    </div>
+                  </div>
+                  <!-- Resto de días de pronóstico... -->
+                </div>
+              </section>
+
+              <!-- Alertas meteorológicas mejoradas -->
+              <section class="alerts" aria-labelledby="alertsTitle">
+                <h2 id="alertsTitle" class="alerts__title">
+                  Alertas meteorológicas
+                </h2>
+                <div id="alertsContainer" role="alert">
+                  <div class="alert-card alert-card--warning">
+                    <div
+                      class="alert-card__icon icon-warning"
+                      aria-hidden="true"
+                    ></div>
+                    <div class="alert-card__content">
+                      <h3 class="alert-card__title">
+                        Alerta por lluvias intensas
+                      </h3>
+                      <p class="alert-card__message">
+                        Se esperan precipitaciones de entre 30 y 50 mm en las
+                        próximas 24 horas. Posible acumulación de agua en calles
+                        y avenidas.
+                      </p>
+                      <div class="alert-card__footer">
+                        <span>Emitida por Servicio Meteorológico Nacional</span>
+                        <span class="alert-card__time">2 horas atrás</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Columna lateral mejorada -->
+            <aside
+              class="dashboard__sidebar"
+              aria-label="Herramientas adicionales"
+            >
+              <!-- Buscador de ubicación accesible -->
+              <section class="location" aria-labelledby="locationSearchTitle">
+                <h2 id="locationSearchTitle" class="location__title">
+                  Buscar ubicación
+                </h2>
+                <div class="location__form">
+                  <label for="locationInput" class="sr-only"
+                    >Nombre de ciudad</label
+                  >
+                  <input
+                    type="text"
+                    id="locationInput"
+                    class="location__input"
+                    placeholder="Nombre de ciudad..."
+                  />
+                  <button
+                    class="location__button"
+                    id="searchButton"
+                    aria-label="Buscar ubicación"
+                  >
+                    <span class="icon-search" aria-hidden="true"></span>
+                  </button>
+                </div>
+                <ul class="location-list" role="listbox">
+                  <li
+                    class="location-list__item location-list__item--active"
+                    role="option"
+                    aria-selected="true"
+                  >
+                    <span
+                      class="location-list__icon icon-location"
+                      aria-hidden="true"
+                    ></span>
+                    <div class="location-list__text">
+                      <div class="location-list__city">Buenos Aires</div>
+                      <div class="location-list__country">Argentina</div>
+                    </div>
+                  </li>
+                  <!-- Resto de ubicaciones... -->
+                </ul>
+              </section>
+
+              <!-- Datos históricos -->
+              <section class="historical" aria-labelledby="historicalDataTitle">
+                <h2 id="historicalDataTitle" class="historical__title">
+                  Datos históricos
+                </h2>
+                <div class="historical__tabs" role="tablist">
+                  <button
+                    class="historical__tab historical__tab--active"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="week-tab"
+                  >
+                    7 días
+                  </button>
+                  <button
+                    class="historical__tab"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="month-tab"
+                  >
+                    30 días
+                  </button>
+                  <button
+                    class="historical__tab"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="year-tab"
+                  >
+                    12 meses
+                  </button>
+                </div>
+                <div class="historical__content">
+                  <div
+                    id="week-tab"
+                    class="historical__chart"
+                    role="tabpanel"
+                    aria-labelledby="historicalDataTitle"
+                  ></div>
+                </div>
+              </section>
+            </aside>
+          </div>
+
+          <!-- Sección del mapa mejorada -->
+          <section
+            class="map-section"
+            id="mapSection"
+            aria-labelledby="mapTitle"
+          >
+            <h2 id="mapTitle" class="forecast__title">
+              Mapa meteorológico en tiempo real
+            </h2>
+            <div class="map-controls">
+              <div class="map-controls__group">
+                <label for="mapLayerSelect" class="map-controls__label"
+                  >Capa:</label
+                >
+                <select id="mapLayerSelect" class="map-controls__select">
+                  <option value="temp">Temperatura</option>
+                  <option value="clouds">Nubes</option>
+                  <option value="precipitation">Precipitación</option>
+                  <option value="wind">Viento</option>
+                  <option value="pressure">Presión</option>
+                </select>
+              </div>
+              <div class="map-controls__group">
+                <label for="mapZoomSelect" class="map-controls__label"
+                  >Zoom:</label
+                >
+                <select id="mapZoomSelect" class="map-controls__select">
+                  <option value="3">País</option>
+                  <option value="5">Región</option>
+                  <option value="7">Ciudad</option>
+                  <option value="10">Barrio</option>
+                </select>
+              </div>
+            </div>
+            <div class="map-container">
+              <div id="weatherMap" aria-label="Mapa meteorológico"></div>
+            </div>
+            <div class="map-legend">
+              <h3 class="map-legend__title">Leyenda</h3>
+              <div class="map-legend__items">
+                <div class="map-legend__item">
+                  <div
+                    class="map-legend__color"
+                    style="background-color: #0000ff"
+                  ></div>
+                  <span class="map-legend__label">Muy frío (< 0°C)</span>
+                </div>
+                <!-- Resto de leyenda... -->
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Footer mejorado semánticamente -->
+      <footer class="footer" role="contentinfo">
+        <div class="app__container footer__container">
+          <section class="footer__section" aria-labelledby="aboutTitle">
+            <h3 id="aboutTitle" class="footer__title">Acerca de</h3>
+            <p>
+              ClimApp es una aplicación para consultar información climática en
+              tiempo real.
+            </p>
+          </section>
+          <section class="footer__section" aria-labelledby="usefulLinksTitle">
+            <h3 id="usefulLinksTitle" class="footer__title">Enlaces útiles</h3>
+            <ul class="footer__list">
+              <li class="footer__item">
+                <a href="#" class="footer__link">Política de privacidad</a>
+              </li>
+              <li class="footer__item">
+                <a href="#" class="footer__link">Términos de uso</a>
+              </li>
+              <li class="footer__item">
+                <a href="#" class="footer__link">Contacto</a>
+              </li>
+            </ul>
+          </section>
+          <section class="footer__section" aria-labelledby="socialTitle">
+            <h3 id="socialTitle" class="footer__title">Síguenos</h3>
+            <ul class="footer__list">
+              <li class="footer__item">
+                <a href="#" class="footer__link">Facebook</a>
+              </li>
+              <li class="footer__item">
+                <a href="#" class="footer__link">Twitter</a>
+              </li>
+              <li class="footer__item">
+                <a href="#" class="footer__link">Instagram</a>
+              </li>
+            </ul>
+          </section>
+        </div>
+        <div class="footer__copyright">
+          &copy; 2023 ClimApp. Todos los derechos reservados.
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
